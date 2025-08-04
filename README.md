@@ -524,66 +524,11 @@ async generateNextRound(tournamentId: string) {
 
 ---
 
-## Docker
-
-**`docker-compose.yml`**
-
-```yaml
-services:
-  db:
-    image: postgres:14
-    environment:
-      POSTGRES_USER: padelio
-      POSTGRES_PASSWORD: padelio
-      POSTGRES_DB: padelio
-    ports: ['5432:5432']
-    volumes: [dbdata:/var/lib/postgresql/data]
-volumes:
-  dbdata:
-```
-
-**`Dockerfile`**
-
-```dockerfile
-FROM node:20-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci
-COPY . .
-RUN npm run build
-EXPOSE 3000
-CMD ["node", "dist/main.js"]
-```
-
----
-
 ## Testing
 
 ```bash
 npm test
 npm run test:e2e
-```
-
----
-
-## CI (GitHub Actions)
-
-**`.github/workflows/ci.yml`**
-
-```yaml
-name: CI
-on: [push, pull_request]
-jobs:
-  build-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 20 }
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run build
-      - run: npm test -- --ci
 ```
 
 ---
