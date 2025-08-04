@@ -1,0 +1,105 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Player {
+  id                String             @id @default(cuid())
+  name              String
+  gender            String //"M" | "F"
+  rating            Int?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  TournamentPlayers TournamentPlayer[]
+  TeamMembers       TeamMember[]
+}
+
+model Tournament {
+  id          String               @id @default(cuid())
+  name        String
+  format      TournamentFormat
+  startDate   DateTime
+  courtCount  Int                  @default(1)
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+  Rounds      Round[]
+  Teams       Team[]
+  Players     TournamentPlayer[]
+  SuperConfig SuperMexicanoConfig?
+}
+
+enum TournamentFormat {
+  americano
+  mixed
+  team_americano
+  mexicano
+  team_mexicano
+  super_mexicano
+}
+
+model TournamentPlayer {
+  tournamentId String
+  playerId     String
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  player       Player     @relation(fields: [playerId], references: [id])
+
+  @@id([tournamentId, playerId])
+}
+
+model Team {
+  id           String       @id @default(cuid())
+  tournamentId String
+  name         String
+  tournament   Tournament   @relation(fields: [tournamentId], references: [id])
+  members      TeamMember[]
+}
+
+model TeamMember {
+  teamId   String
+  playerId String
+  team     Team   @relation(fields: [teamId], references: [id])
+  player   Player @relation(fields: [playerId], references: [id])
+
+  @@id([teamId, playerId])
+}
+
+model Round {
+  id           String     @id @default(cuid())
+  tournamentId String
+  roundNumber  Int
+  scheduledAt  DateTime?
+  tournament   Tournament @relation(fields: [tournamentId], references: [id])
+  matches      Match[]
+}
+
+model Match {
+  id           String             @id @default(cuid())
+  roundId      String
+  courtIdx     Int
+  startTime    DateTime?
+  metadata     Json?
+  round        Round              @relation(fields: [roundId], references: [id])
+  participants MatchParticipant[]
+}
+
+model MatchParticipant {
+  matchId  String
+  side     Int
+  playerId String?
+  teamId   String?
+  points   Int     @default(0)
+  match    Match   @relation(fields: [matchId], references: [id])
+
+  @@id([matchId, side])
+}
+
+model SuperMexicanoConfig {
+  tournamentId   String     @id
+  bonusPoints    Int        @default(1)
+  bonusFromRound Int        @default(2)
+  tournament     Tournament @relation(fields: [tournamentId], references: [id])
+}
